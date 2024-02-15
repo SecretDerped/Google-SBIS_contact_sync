@@ -87,5 +87,5 @@ class GoogleManager:
 
 if __name__ == "__main__":
     google = GoogleManager(["https://www.googleapis.com/auth/contacts"])
-    #google.create_contact('TESTOVA4', '88005553534')
-    print(json.dumps((google.get_contacts_info()), indent=4, ensure_ascii=False, sort_keys=True))
+    google.create_contact('Вильхонцев', '88005553530')
+    #print(json.dumps((google.get_contacts_info()), indent=4, ensure_ascii=False, sort_keys=True))
