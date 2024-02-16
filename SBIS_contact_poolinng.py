@@ -26,6 +26,7 @@ SBIS_PASSWORD = 'Leartest2007!'
 
 input_today_name = "ws-input_" + datetime.now().strftime('%Y-%m-%d')
 
+
 def move_and_click(element):
     ActionChains(driver).move_to_element(element).click().perform()
 
@@ -62,6 +63,7 @@ def normalize_phone(number):
     if number.startswith('+7'):
         number = '8' + number[2:]
     return number
+
 
 def sbis_contact_search(contact_phone_number: str):
     phone = normalize_phone(contact_phone_number)

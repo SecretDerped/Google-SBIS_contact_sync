@@ -8,6 +8,8 @@ from google_auth_oauthlib.flow import InstalledAppFlow
 from googleapiclient.discovery import build
 from googleapiclient.errors import HttpError
 
+from SBIS_contact_poolinng import sbis_contact_search
+
 console_out = logging.StreamHandler()
 file_log = logging.FileHandler("application.log", mode="w")
 logging.basicConfig(handlers=(file_log, console_out), level=logging.INFO,
@@ -47,7 +49,7 @@ class GoogleManager:
     def get_contacts_info(self):
         results = self.service.people().connections().list(
             resourceName="people/me",
-            pageSize=100,
+            pageSize=10000,
             personFields="names,phoneNumbers"
         ).execute()
 
@@ -74,7 +76,8 @@ class GoogleManager:
         return {"refresh": 10, "items": items}
 
     @on_service
-    def create_contact(self, name: str = '', phone: str = ''):
+    def create_contact(self, phone: str = ''):
+        name = sbis_contact_search(phone)
         contact_body = {
             "names": [{"unstructuredName": name}],
             "phoneNumbers": [{'value': phone, 'type': 'mobile'}]
