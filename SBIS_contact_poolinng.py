@@ -80,6 +80,8 @@ def sbis_contact_search(contact_phone_number: str):
 
         # Кликает на первую позицию в поиске и ждёт, когда откроется
         clients = global_xpath_find_all("//div[@class='crm_ClientMain__item crm_ClientMain__item ws-ellipsis ws-flexbox ws-flex-column']")
+        if clients is []:
+            return None
         move_and_click(clients[0])
         time.sleep(1.5)
 

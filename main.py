@@ -12,5 +12,5 @@ async def get_contacts():
 
 
 @app.get("/contact/add")
-async def create_contact(name, phone):
-    return google.create_contact(name, phone)
+async def create_contact(phone):
+    return google.create_contact(phone)

@@ -1,5 +1,6 @@
 import re
 import os
+import time
 
 import requests
 
@@ -52,11 +53,14 @@ def load_found_numbers():
 
 # Основная логика
 if __name__ == '__main__':
-    start_pos = load_state()
-    known_numbers = load_found_numbers()
-    new_numbers, new_pos = find_phone_numbers(start_pos, known_numbers)
-    save_state(new_pos)
-    for number in new_numbers:
-        print(number)
-        #requests.get(f'192.168.0.1:8000/contact/add?{number}')
-    save_found_numbers(known_numbers)
+    while True:
+        start_pos = load_state()
+        known_numbers = load_found_numbers()
+        new_numbers, new_pos = find_phone_numbers(start_pos, known_numbers)
+        save_state(new_pos)
+        for number in new_numbers:
+            print(number)
+            requests.get(f'192.168.1.64:8000/contact/add?{number}')
+        save_found_numbers(known_numbers)
+        time.sleep(10)
+

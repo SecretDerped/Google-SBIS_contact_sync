@@ -1,4 +1,3 @@
-import json
 import logging
 import os.path
 
@@ -47,48 +46,70 @@ class GoogleManager:
 
     @on_service
     def get_contacts_info(self):
-        results = self.service.people().connections().list(
-            resourceName="people/me",
-            pageSize=10000,
-            personFields="names,phoneNumbers"
-        ).execute()
-
-        connections = results.get("connections", [])
+        next_page_token = None
         items = []
-        for person in connections:
-            name = person.get("names", [])[0].get("displayName")
-            phone_number = person.get('phoneNumbers', [])[0].get('value')
-            items.append({"number": phone_number,
-                          "name": name,
-                          "firstname": "",
-                          "lastname": "",
-                          "phone": "",
-                          "mobile": "",
-                          "email": "",
-                          "address": "",
-                          "city": "",
-                          "state": "",
-                          "zip": "",
-                          "comment": "",
-                          "presence": 0,
-                          "starred": 0,
-                          "info": ""})
+        while True:
+            results = self.service.people().connections().list(
+                resourceName="people/me",
+                pageSize=2000,
+                pageToken=next_page_token,
+                personFields="names,phoneNumbers",
+            ).execute()
+
+            connections = results.get("connections", [])
+
+            for person in connections:
+                name = person.get("names", [])[0].get("displayName")
+                phone_number = person.get('phoneNumbers', [])[0].get('value')
+                items.append({"number": phone_number,
+                              "name": name,
+                              "firstname": "",
+                              "lastname": "",
+                              "phone": "",
+                              "mobile": "",
+                              "email": "",
+                              "address": "",
+                              "city": "",
+                              "state": "",
+                              "zip": "",
+                              "comment": "",
+                              "presence": 0,
+                              "starred": 0,
+                              "info": ""})
+
+            next_page_token = results.get('nextPageToken')
+            if not next_page_token:
+                break
+
         return {"refresh": 10, "items": items}
 
+
     @on_service
-    def create_contact(self, phone: str = ''):
-        name = sbis_contact_search(phone)
+    def search_contact(self, contact_phone: str = ''):
+        contacts = self.get_contacts_info()['items']
+        for contact in contacts:
+            if contact['number'] == contact_phone:
+                return f'{contact["name"]}: {contact["number"]}'
+        return None
+
+
+    @on_service
+    def create_contact(self, phone: str):
+        if google_contact := self.search_contact(phone):
+            return {f'{google_contact} in Google contacts already.'}
+        if name := sbis_contact_search(phone) is None:
+            return {f'{phone} is not found in SABY.СБИС.'}
+
         contact_body = {
             "names": [{"unstructuredName": name}],
             "phoneNumbers": [{'value': phone, 'type': 'mobile'}]
         }
         contact_result = self.service.people().createContact(body=contact_body).execute()
         logging.info(f"Добавлен контакт: {name}, {phone}")
-        logging.debug(contact_result)
         return contact_result
 
 
 if __name__ == "__main__":
     google = GoogleManager(["https://www.googleapis.com/auth/contacts"])
-    google.create_contact('Вильхонцев', '88005553530')
+    print(google.create_contact('89898989898'))
     #print(json.dumps((google.get_contacts_info()), indent=4, ensure_ascii=False, sort_keys=True))
