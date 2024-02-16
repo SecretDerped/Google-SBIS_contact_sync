@@ -4,7 +4,7 @@ import time
 
 import requests
 
-log_file_path = 'microsip_log.txt'
+log_file_path = 'C:/Users/User/AppData/Local/MicroSIP/microsip_log.txt'
 state_file_path = 'log_read_state.txt'
 found_numbers_file_path = 'found_phone_numbers.txt'
 
@@ -59,8 +59,9 @@ if __name__ == '__main__':
         new_numbers, new_pos = find_phone_numbers(start_pos, known_numbers)
         save_state(new_pos)
         for number in new_numbers:
-            print(number)
-            requests.get(f'192.168.1.64:8000/contact/add?{number}')
+            print(number + ' has in job...')
+            #TODO: починить get
+            requests.get(f'192.168.1.64:8000/contact/add?phone={number}')
         save_found_numbers(known_numbers)
         time.sleep(10)
 
