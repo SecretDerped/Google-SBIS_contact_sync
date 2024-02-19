@@ -1,8 +1,13 @@
 import re
 import os
 import time
-
+import logging
 import requests
+
+console_out = logging.StreamHandler()
+file_log = logging.FileHandler("application.log", mode="w")
+logging.basicConfig(handlers=(file_log, console_out), level=logging.INFO,
+                    format='[%(asctime)s | %(levelname)s]: %(message)s')
 
 log_file_path = 'C:/Users/User/AppData/Local/MicroSIP/microsip_log.txt'
 state_file_path = 'log_read_state.txt'
@@ -54,13 +59,19 @@ def load_found_numbers():
 # Основная логика
 if __name__ == '__main__':
     while True:
+        logging.info('Cycle has begin.')
         start_pos = load_state()
+        logging.info(f'Load state: {start_pos}')
         known_numbers = load_found_numbers()
+        logging.info(f'{known_numbers}')
         new_numbers, new_pos = find_phone_numbers(start_pos, known_numbers)
         save_state(new_pos)
+        logging.info('State saving...')
+        logging.info(new_numbers)
         for number in new_numbers:
             print(number + ' has in job...')
             requests.get(f'http://192.168.1.64:8000/contact/add?phone={number}')
         save_found_numbers(known_numbers)
+        logging.info('Numbers saved. Waiting 10 sec...\n')
         time.sleep(10)
 
