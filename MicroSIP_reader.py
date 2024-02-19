@@ -60,8 +60,7 @@ if __name__ == '__main__':
         save_state(new_pos)
         for number in new_numbers:
             print(number + ' has in job...')
-            #TODO: починить get
-            requests.get(f'192.168.1.64:8000/contact/add?phone={number}')
+            requests.get(f'http://192.168.1.64:8000/contact/add?phone={number}')
         save_found_numbers(known_numbers)
         time.sleep(10)
 

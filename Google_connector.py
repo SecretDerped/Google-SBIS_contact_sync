@@ -97,15 +97,17 @@ class GoogleManager:
     def create_contact(self, phone: str):
         if google_contact := self.search_contact(phone):
             return {f'{google_contact} in Google contacts already.'}
+        logging.debug(f'{phone} is not in Google contacts. Searching in SBIS...')
         if name := sbis_contact_search(phone) is None:
             return {f'{phone} is not found in SABY.СБИС.'}
+        logging.debug(f'{phone} founded in SBIS. It is {name}. Creating contact in Google contacts...')
 
         contact_body = {
             "names": [{"unstructuredName": name}],
             "phoneNumbers": [{'value': phone, 'type': 'mobile'}]
         }
         contact_result = self.service.people().createContact(body=contact_body).execute()
-        logging.info(f"Добавлен контакт: {name}, {phone}")
+        logging.info(f"Create contact: {name}, {phone}")
         return contact_result
 
 
