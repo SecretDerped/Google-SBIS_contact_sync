@@ -19,12 +19,12 @@ driver = Chrome(options=options)
 
 
 def log_print(func):
-    def wrapper(*args, **kwargs):
+    def _wrapper(*args, **kwargs):
         logging.info(f'Call - {func.__name__}{args} {kwargs}')
         result = func(*args, **kwargs)
         logging.info(f'Result - {func.__name__}{args} {kwargs}: {result}')
         return result
-    return wrapper
+    return _wrapper
 
 
 @log_print

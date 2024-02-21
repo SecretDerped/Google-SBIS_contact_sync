@@ -47,7 +47,7 @@ class GoogleManager:
     @on_service
     def get_contacts_info(self):
         next_page_token = None
-        items = []
+        items = {}
         while True:
             results = self.service.people().connections().list(
                 resourceName="people/me",
@@ -61,32 +61,19 @@ class GoogleManager:
             for person in connections:
                 name = person.get("names", [])[0].get("displayName")
                 phone_number = person.get('phoneNumbers', [])[0].get('value')
-                items.append({"number": phone_number,
-                              "name": name,
-                              "firstname": "",
-                              "lastname": "",
-                              "phone": "",
-                              "mobile": "",
-                              "email": "",
-                              "address": "",
-                              "city": "",
-                              "state": "",
-                              "zip": "",
-                              "comment": "",
-                              "presence": 0,
-                              "starred": 0,
-                              "info": ""})
+
+                items[phone_number] = name
 
             next_page_token = results.get('nextPageToken')
             if not next_page_token:
                 break
 
-        return {"refresh": 10, "items": items}
+        return items
 
 
     @on_service
     def search_contact(self, contact_phone: str = ''):
-        contacts = self.get_contacts_info()['items']
+        contacts = self.get_contacts_info()
         for contact in contacts:
             if contact['number'] == contact_phone:
                 return f'{contact["name"]}: {contact["number"]}'
@@ -97,10 +84,11 @@ class GoogleManager:
     def create_contact(self, phone: str):
         if google_contact := self.search_contact(phone):
             return {f'{google_contact} in Google contacts already.'}
-        logging.debug(f'{phone} is not in Google contacts. Searching in SBIS...')
-        if name := sbis_contact_search(phone) is None:
+        logging.info(f'{phone} is not in Google contacts. Searching in SBIS...')
+        name = sbis_contact_search(phone)
+        if not name:
             return {f'{phone} is not found in SABY.СБИС.'}
-        logging.debug(f'{phone} founded in SBIS. It is {name}. Creating contact in Google contacts...')
+        logging.info(f'{phone} founded in SBIS: {name}. Creating contact in Google contacts...')
 
         contact_body = {
             "names": [{"unstructuredName": name}],
@@ -113,5 +101,5 @@ class GoogleManager:
 
 if __name__ == "__main__":
     google = GoogleManager(["https://www.googleapis.com/auth/contacts"])
-    print(google.create_contact('89898989898'))
+    print(google.create_contact('8 (34922) 5-11-47'))
     #print(json.dumps((google.get_contacts_info()), indent=4, ensure_ascii=False, sort_keys=True))
