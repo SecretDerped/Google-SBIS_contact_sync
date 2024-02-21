@@ -5,7 +5,7 @@ import logging
 import requests
 
 console_out = logging.StreamHandler()
-file_log = logging.FileHandler("application.log", mode="w")
+file_log = logging.FileHandler("../application.log", mode="w")
 logging.basicConfig(handlers=(file_log, console_out), level=logging.INFO,
                     format='[%(asctime)s | %(levelname)s]: %(message)s')
 

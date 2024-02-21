@@ -1,11 +1,7 @@
 import logging
-import os
 import openpyxl
 import time
 import re
-
-from Google_connector import GoogleManager
-from SBIS_contact_poolinng import sbis_contact_get_list
 
 console_out = logging.StreamHandler()
 file_log = logging.FileHandler("application.log", mode="w")
@@ -29,7 +25,14 @@ def find_phone_numbers(text):
     return re.findall(pattern, text)
 
 
-def read_xml_contacts(file_path: str):
+def normalize_phone(number):
+    number = re.sub("[(|)|\-| ]", "", number)
+    if number.startswith('+7'):
+        number = '8' + number[2:]
+    return number
+
+@log_print
+def read_contacts_xlsx(file_path: str):
     workbook = openpyxl.load_workbook(file_path)
     sheet = workbook.active  # Выбор активного листа
     phone_book = {}
@@ -46,11 +49,7 @@ def read_xml_contacts(file_path: str):
 
 
 if __name__ == '__main__':
-    google = GoogleManager(["https://www.googleapis.com/auth/contacts"])
     file_path = '/home/user/Autorun/SBIS_contacts/Клиенты_CRM.xlsx'
-    if os.path.exists(file_path):
-        os.remove(file_path)
-    if sbis_contact_get_list():
-        sbis_contacts = read_xml_contacts(file_path)
-        for phone, name in sbis_contacts.items():
-            print(f"{phone}: {name}")
+    sbis_contacts = read_contacts_xlsx(file_path)
+    for phone, name in sbis_contacts.items():
+        print(f"{phone}: {name}")

@@ -1,12 +1,13 @@
 import logging
 import os
-import re
 import time
 from datetime import datetime
 from selenium.common import NoSuchElementException, InvalidSelectorException
 from selenium.webdriver.common.by import By
 from selenium.webdriver import Chrome, ChromeOptions
 from selenium.webdriver.common.action_chains import ActionChains
+
+from utilits import normalize_phone, log_print
 
 download_directory = "/home/user/Autorun/SBIS_contacts"
 options = ChromeOptions()
@@ -35,7 +36,7 @@ SBIS_PASSWORD = 'Leartest2007!'
 
 input_today_name = "ws-input_" + datetime.now().strftime('%Y-%m-%d')
 
-
+@log_print
 def move_and_click(element):
     ActionChains(driver).move_to_element(element).click().perform()
     return True
@@ -50,7 +51,7 @@ def xpath_finds(xpath: str):
     result = driver.find_elements(By.XPATH, xpath)
     return result
 
-
+@log_print
 def sbis_login():
     time.sleep(2)
     login_box = driver.find_element(By.NAME, input_today_name)
@@ -68,13 +69,6 @@ def sbis_login():
     submit_button = xpath_find(submit_button_xpath)  # ДА, ТАК НАДО
     move_and_click(submit_button)
     return True
-
-
-def normalize_phone(number):
-    number = re.sub("[(|)|\-| ]", "", number)
-    if number.startswith('+7'):
-        number = '8' + number[2:]
-    return number
 
 
 def sbis_contact_search(contact_phone_number: str):
@@ -125,11 +119,11 @@ def sbis_contact_search(contact_phone_number: str):
                         return f'{company_name} | {contact_name}' if contact_name else f'{company_name}'
 
     except NoSuchElementException as e:
-        print("Нет элемента", e)
+        logging.info(e)
         return None
 
-
-def sbis_contact_get_list():
+@log_print
+def get_sbis_contacts_xlsx():
     try:  # Если при загрузке найден элемент со страницы авторизации, выполняет скрипт авторизации
         driver.get('https://online.sbis.ru/page/crm-clients')
         if len(xpath_finds("//div[@class='auth-AuthTemplate__browserWarning']")) > 0:
@@ -150,19 +144,18 @@ def sbis_contact_get_list():
 
         while True:  # Проверка, что файл полностью загружен
             if os.path.exists(download_directory + '/Клиенты_CRM.xlsx'):
-                logging.info(f"Файл загружен: {download_directory}/Клиенты_CRM.xlsx")
+                logging.info(f"File downloaded successfully: {download_directory}/Клиенты_CRM.xlsx")
                 return True
             else:
                 time.sleep(1)
 
     except NoSuchElementException as e:
-        print("Нет элемента:", e)
+        logging.warning("ERROR, NO SUCH ELEMENT:", e)
         return None
 
     finally:
-        print("good")
         driver.quit()
 
 
 if __name__ == '__main__':
-    sbis_contact_get_list()
+    get_sbis_contacts_xlsx()
