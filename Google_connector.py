@@ -59,7 +59,6 @@ class GoogleManager:
             connections = results.get("connections", [])
 
             for person in connections:
-                print(person)
                 name = person.get("names", [])[0].get("displayName")
                 phone_number = person.get('phoneNumbers', [])
                 for info in phone_number:
@@ -97,4 +96,3 @@ if __name__ == "__main__":
     contacts = google.get_contacts_dict()
     for phone, name in contacts.items():
         print(phone, name)
-    #print(json.dumps((google.get_contacts_info()), indent=4, ensure_ascii=False, sort_keys=True))
