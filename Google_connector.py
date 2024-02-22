@@ -7,8 +7,6 @@ from google_auth_oauthlib.flow import InstalledAppFlow
 from googleapiclient.discovery import build
 from googleapiclient.errors import HttpError
 
-from SBIS_contact_poolinng import sbis_contact_search
-
 console_out = logging.StreamHandler()
 file_log = logging.FileHandler("application.log", mode="w")
 logging.basicConfig(handlers=(file_log, console_out), level=logging.INFO,
@@ -61,10 +59,12 @@ class GoogleManager:
             connections = results.get("connections", [])
 
             for person in connections:
+                print(person)
                 name = person.get("names", [])[0].get("displayName")
-                phone_number = person.get('phoneNumbers', [])[0].get('value')
-
-                contacts[phone_number] = name
+                phone_number = person.get('phoneNumbers', [])
+                for info in phone_number:
+                    phone_number = info.get('value')
+                    contacts[phone_number] = name
 
             next_page_token = results.get('nextPageToken')
             if not next_page_token:
@@ -94,12 +94,7 @@ class GoogleManager:
 
 if __name__ == "__main__":
     google = GoogleManager(["https://www.googleapis.com/auth/contacts"])
+    contacts = google.get_contacts_dict()
+    for phone, name in contacts.items():
+        print(phone, name)
     #print(json.dumps((google.get_contacts_info()), indent=4, ensure_ascii=False, sort_keys=True))
-
-    '''if google_contact := self.search_contact(phone):
-        return {f'{google_contact} in Google contacts already.'}
-    logging.info(f'{phone} is not in Google contacts. Searching in SBIS...')
-    name = sbis_contact_search(phone)
-    if not name:
-        return {f'{phone} is not found in SABY.СБИС.'}
-    logging.info(f'{phone} founded in SBIS: {name}. Creating contact in Google contacts...')'''
