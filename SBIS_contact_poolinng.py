@@ -149,9 +149,12 @@ def get_sbis_contacts_xlsx():
             else:
                 time.sleep(1)
 
-    except NoSuchElementException as e:
-        logging.warning("ERROR, NO SUCH ELEMENT:", e)
-        return None
+    except Exception as e:
+        logging.info(e)
+        if '--headless' in options.arguments:
+            return None
+        time.sleep(36000)
+        return False
 
     finally:
         driver.quit()

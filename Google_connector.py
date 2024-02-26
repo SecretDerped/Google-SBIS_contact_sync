@@ -6,6 +6,11 @@ from google.oauth2.credentials import Credentials
 from google_auth_oauthlib.flow import InstalledAppFlow
 from googleapiclient.discovery import build
 from googleapiclient.errors import HttpError
+from dotenv import load_dotenv
+
+dotenv_path = os.path.join(os.path.dirname(__file__), '.env')
+if os.path.exists(dotenv_path):
+    load_dotenv(dotenv_path)
 
 console_out = logging.StreamHandler()
 file_log = logging.FileHandler("application.log", mode="w")
@@ -26,7 +31,7 @@ class GoogleManager:
             if creds and creds.expired and creds.refresh_token:
                 creds.refresh(Request())
             else:
-                flow = InstalledAppFlow.from_client_secrets_file("credentials.json", self.scopes)
+                flow = InstalledAppFlow.from_client_secrets_file("/home/user/PycharmProjects/Google-SBIS_contact_sync/credentials.json", self.scopes)
                 creds = flow.run_local_server(port=0)
             with open("token.json", "w") as token:
                 token.write(creds.to_json())
