@@ -8,8 +8,17 @@ from selenium.webdriver import Chrome, ChromeOptions
 from selenium.webdriver.common.action_chains import ActionChains
 
 from utilits import normalize_phone, log_print
+from dotenv import load_dotenv
 
-download_directory = "/home/user/Autorun/SBIS_contacts"
+dotenv_path = os.path.join(os.path.dirname(__file__), '.env')
+if os.path.exists(dotenv_path):
+    load_dotenv(dotenv_path)
+    
+SBIS_LOGIN = os.environ['SBIS_LOGIN']
+SBIS_PASSWORD = os.environ['SBIS_PASSWORD']
+download_directory = os.environ['DOWNLOAD_DIR']
+
+
 options = ChromeOptions()
 options.add_argument('--allow-profiles-outside-user-dir')
 options.add_argument('--enable-profile-shortcut-manager')
@@ -25,14 +34,10 @@ options.add_experimental_option("prefs", {
 })
 driver = Chrome(options=options)
 driver.implicitly_wait(5)
-title = 'SBIS contact parser'  # По умолчанию было: driver.title
 version = driver.capabilities['browserVersion']
 driver_version = driver.capabilities['chrome']['chromedriverVersion'].split(' ')[0]
 logging.debug(f"Chrome Version: {version}")
 logging.debug(f"ChromeDriver Version: {driver_version}")
-
-SBIS_LOGIN = 'leartest'
-SBIS_PASSWORD = 'Leartest2007!'
 
 input_today_name = "ws-input_" + datetime.now().strftime('%Y-%m-%d')
 
