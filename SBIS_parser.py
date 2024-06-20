@@ -6,7 +6,7 @@ import traceback
 from datetime import datetime
 from functools import wraps
 
-from selenium.common import InvalidSelectorException, InvalidSessionIdException
+from selenium.common import InvalidSelectorException, InvalidSessionIdException, NoSuchElementException
 from selenium.webdriver.common.by import By
 from selenium.webdriver import Chrome, ChromeOptions
 from selenium.webdriver.common.action_chains import ActionChains
@@ -28,15 +28,20 @@ def log_webdriver_action(func):
         # Дополнительно логгируем тип элемента и его атрибуты, если это WebElement
         if description == "WebElement":
             try:
-                element_description = f"{element_or_driver.tag_name} element with text:\n'{element_or_driver.text}'"
+                text = element_or_driver.text
+                element_description = f"{element_or_driver.tag_name} element"
+                if text:
+                    element_description += f" with text:\n'{text}'"
             except:
                 element_description = "unknown element"
             logging.info(f"CALL {func.__name__} on {element_description}...")
         else:
             logging.info(f"CALL {func.__name__} on {description}...")
 
+        start_time = time.time()
         result = func(*args, **kwargs)
-        logging.info(f"RESULT {func.__name__} is completed.")
+        exec_time = time.time() - start_time
+        logging.info(f"RESULT {func.__name__} is completed for {exec_time:.3f} sec.")
         return result
     return _wrapper
 
@@ -48,7 +53,7 @@ class WebdriverProfile:
         self.options.add_argument('--enable-profile-shortcut-manager')
         self.options.add_argument('--profile-directory=Profile 1')
         self.options.add_argument(r'user-data-dir=.\User')
-        self.options.add_argument("--headless")  # Выполнение в фоновом режиме без открытия браузера
+        #self.options.add_argument("--headless")  # Выполнение в фоновом режиме без открытия браузера
         self.options.add_argument("--window-size=1600,900")
         self.options.add_experimental_option("prefs", {
             "download.default_directory": self.download_directory,
@@ -92,11 +97,12 @@ class WebdriverProfile:
         time.sleep(2)
         login_box = driver.find_element(By.NAME, input_today_name)
         login_box.send_keys(SBIS_LOGIN)
+        time.sleep(2)
 
-        submit_button_xpath = "//span[@class='controls-BaseButton controls-Button_filled controls-Button_radius-filled controls-Button_hoverIcon controls-Button_clickable controls-Button_filled_style-primary controls-Button_bg-contrast controls-Button_circle_height-4xl controls-fontsize-m controls-Button_button__wrapper-fontsize-m controls-Button_filled_shadow-big controls-notFocusOnEnter auth-AdaptiveLoginForm__loginButton controls-margin_left-m ws-flex-shrink-0 controls-inlineheight-4xl controls-Button-inlineheight-4xl controls-Button_filled_4xl']"
+        submit_button_xpath = "//div[@class='auth-AdaptiveLoginForm__loginButtonImage controls-BaseButton__icon controls-icon controls-icon_size-m controls-icon_style-contrast']"
         submit_button = find(submit_button_xpath)
         click(submit_button)
-        time.sleep(1)
+        time.sleep(2)
 
         password_box = driver.find_elements(By.NAME, input_today_name)[1]
         click(password_box)
@@ -122,7 +128,7 @@ class WebdriverProfile:
 
             contact_search_field = driver.find_element(By.NAME, input_today_name)
             contact_search_field.send_keys(phone)  # Находит поле поиска, ищет через него компанию по номеру и ждёт, пока поиск прогрузится
-            time.sleep(1.5)
+            time.sleep(2.5)
 
             clients = finds("//div[@class='crm_ClientMain__item crm_ClientMain__item ws-ellipsis ws-flexbox ws-flex-column']")
             if clients is []:   # Кликает на первую позицию в поиске и ждёт, когда откроется
@@ -131,7 +137,7 @@ class WebdriverProfile:
                 click(clients[0])
             else:
                 click(clients)
-            time.sleep(1.5)
+            time.sleep(4)
 
             try:  # Нажимает кнопку "Еще ..." в списке контактов, если она есть. Обычно появляется, если контактов больше 7
                 more_button = finds(
@@ -145,8 +151,11 @@ class WebdriverProfile:
                 for button in expand_buttons:  # Нажимает кнопки раскрытия контакта, если они есть
                     click(button)
                     time.sleep(0.4)
-
-            company_name = find('//div[@class="controls-Tabs__item_overflow"]').text
+            try:
+                company_name = find('//div[@class="controls-Tabs__item_overflow"]').text
+            except NoSuchElementException:
+                client_name = find('//div[@data-qa="crm_IndividualCard__nameInput"]').text
+                return f'{client_name}'
             contacts = finds(
                 "//div[@class='controls-ListView__itemV-relative controls-ListView__itemV js-controls-ListView__editingTarget  controls-ListView__itemV_cursor-default  controls-ListView__item_default controls-ListView__item_showActions js-controls-ListView__measurableContainer controls-ListView__item__unmarked_default controls-ListView__item_roundBorder_topLeft_l controls-ListView__item_roundBorder_topRight_l controls-ListView__item_roundBorder_bottomLeft_l controls-ListView__item_roundBorder_bottomRight_l controls-Tree__item  controls-ListView__item-leftPadding_null cd-ContactsView__itemTemplate cd-ContactsTreeView__item cd-ContactsTreeView__root-item undefined controls-margin_bottom-3xs']")
             for contact in contacts:   # Сохраняет имя компании, ищет контакты и возвращает имя владельца номера
@@ -181,14 +190,16 @@ class WebdriverProfile:
             if len(finds("//div[@class='auth-AuthTemplate__browserWarning']")) > 0:
                 self.sbis_login()
 
-            toggle_operations_button = find('//i[@class="controls-Button__icon controls-BaseButton__icon controls-icon_size-m controls-icon_style-secondary controls-icon icon-Check2"]')
+            time.sleep(2)
+
+            toggle_operations_button = find('//div[@data-qa="toggleOperationsPanel"]')
             click(toggle_operations_button)  # Кнопка "Отметить"
-            time.sleep(1.5)
+            time.sleep(2)
 
             fill_all_radiobutton = find('//div[@data-qa="controls-CheckboxMarker"]')
             click(fill_all_radiobutton)  # Круглая кнопка "Отметить все"
 
-            unload_button = find('//i[@class="controls-Button__icon controls-BaseButton__icon controls-icon_size-s controls-icon_style-secondary controls-icon icon-Save"]')
+            unload_button = find('//i[@class="controls-BaseButton__icon controls-icon_size-s controls-icon icon-UnloadNew"]')
             click(unload_button)  # Кнопка "Выгрузить" вверху
 
             download_button = find('//div[@title="Номера телефонов"]')
@@ -217,5 +228,5 @@ def reload(webdriver: WebdriverProfile):
 
 if __name__ == '__main__':
     browser = WebdriverProfile()
-    print(browser.sbis_contact_search('89183816878'))
+    #print(browser.sbis_contact_search('89183816878'))
     browser.close()

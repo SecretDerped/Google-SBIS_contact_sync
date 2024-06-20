@@ -71,8 +71,8 @@ class GoogleManager:
             if not next_page_token:
                 return contact_list
 
-    @log_print
     @on_service
+    @log_print
     def create_contact(self, name: str = '-', phone: str = '-'):
 
         contact_body = {
@@ -80,7 +80,7 @@ class GoogleManager:
             "phoneNumbers": [{'value': phone, 'type': 'mobile'}]
         }
         contact_result = self.service.people().createContact(body=contact_body).execute()
-        return contact_result
+        return contact_result['resourceName']
 
     @on_service
     def delete_contact(self, contact_resource: str):
