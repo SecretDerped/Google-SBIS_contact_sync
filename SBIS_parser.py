@@ -15,7 +15,7 @@ from selenium.webdriver.remote.webelement import WebElement
 from utilits import normalize_phone, log_print
 
 SBIS_LOGIN = 'leartest'
-SBIS_PASSWORD = 'Leartest2007!'
+SBIS_PASSWORD = 'password'
 input_today_name = "ws-input_" + datetime.now().strftime('%Y-%m-%d')
 
 
